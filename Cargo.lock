@@ -1267,7 +1267,7 @@ dependencies = [
  "wasm-bindgen",
  "wasm-bindgen-futures",
  "web-time",
- "windows-sys 0.61.2",
+ "windows-sys 0.59.0",
 ]
 
 [[package]]
@@ -2038,6 +2038,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "config"
+version = "0.1.0"
+source = "git+https://github.com/personal-rust-crates/config.git?branch=master#599fef486dc21d36031e894a62f0528d621bc4a3"
+dependencies = [
+ "bevy_log",
+ "my_derive",
+ "serde",
+ "serde-big-array",
+ "serde_json",
+]
+
+[[package]]
 name = "console_error_panic_hook"
 version = "0.1.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2423,7 +2435,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "39cab71617ae0d63f51a36d69f866391735b51691dbda63cf6f96d042b63efeb"
 dependencies = [
  "libc",
- "windows-sys 0.61.2",
+ "windows-sys 0.52.0",
 ]
 
 [[package]]
@@ -3432,6 +3444,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "my_derive"
+version = "0.1.0"
+source = "git+https://github.com/personal-rust-crates/config.git?branch=master#599fef486dc21d36031e894a62f0528d621bc4a3"
+dependencies = [
+ "quote",
+ "syn 2.0.119",
+]
+
+[[package]]
 name = "naga"
 version = "29.0.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3547,7 +3568,7 @@ version = "0.50.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7957b9740744892f114936ab4a57b3f487491bbeafaf8083688b16841a4240e5"
 dependencies = [
- "windows-sys 0.61.2",
+ "windows-sys 0.59.0",
 ]
 
 [[package]]
@@ -4032,7 +4053,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7d8fae84b431384b68627d0f9b3b1245fcf9f46f6c0e3dc902e9dce64edd1967"
 dependencies = [
  "libc",
- "windows-sys 0.61.2",
+ "windows-sys 0.45.0",
 ]
 
 [[package]]
@@ -4513,7 +4534,7 @@ dependencies = [
  "errno",
  "libc",
  "linux-raw-sys 0.12.1",
- "windows-sys 0.61.2",
+ "windows-sys 0.52.0",
 ]
 
 [[package]]
@@ -4585,6 +4606,15 @@ checksum = "4148590afebada386688f18773da617792bf2ef03ffc1e4cbd2b1d45b023e0ba"
 dependencies = [
  "serde_core",
  "serde_derive",
+]
+
+[[package]]
+name = "serde-big-array"
+version = "0.5.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "11fc7cc2c76d73e0f27ee52abbd64eec84d46f370c88371120433196934e4b7f"
+dependencies = [
+ "serde",
 ]
 
 [[package]]
@@ -5270,6 +5300,7 @@ name = "wave_simulation"
 version = "0.1.0"
 dependencies = [
  "bevy",
+ "config",
 ]
 
 [[package]]
@@ -5608,7 +5639,7 @@ version = "0.1.11"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c2a7b1c03c876122aa43f3020e6c3c3ee5c05081c9a00739faf7503aeba10d22"
 dependencies = [
- "windows-sys 0.61.2",
+ "windows-sys 0.52.0",
 ]
 
 [[package]]

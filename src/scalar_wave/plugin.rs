@@ -2,7 +2,7 @@ use std::f32::consts::PI;
 
 use crate::{
     DeformablePlane,
-    consts::{N_1D, N_2D},
+    consts::{LEN, X_LEN, Y_LEN},
     scalar_wave::{
         sim_config::{SimConfig, Simulation},
         sim_title::SimTitle,
@@ -15,7 +15,6 @@ use bevy::{
     asset::Assets,
     color::Color,
     ecs::{
-        change_detection::DetectChangesMut,
         query::With,
         schedule::IntoScheduleConfigs,
         system::{Commands, Query, Res, ResMut},
@@ -24,6 +23,7 @@ use bevy::{
     math::{Quat, ops::*, primitives::Plane3d, vec2},
     mesh::{Mesh, Mesh3d, Meshable, VertexAttributeValues},
     pbr::{MeshMaterial3d, StandardMaterial},
+    reflect::list::List,
     text::{FontSize, TextColor, TextFont},
     time::Time,
     transform::components::Transform,
@@ -34,17 +34,17 @@ use bevy::{
 pub struct WavePlugin;
 impl Plugin for WavePlugin {
     fn build(&self, app: &mut bevy::app::App) {
-        let mut x_1d = [0.0; N_1D];
-        let base_u = [0.0; N_2D];
+        let mut x_1d = [0.0; X_LEN];
+        let base_u = vec![0.0; LEN];
 
         let start = PI * -2.0;
         let stop = PI * 2.0;
-        let space_step = (stop - start) / (N_1D as f32);
+        let space_step = (stop - start) / (X_LEN as f32);
         let dur = 15.0;
 
         // Init x points
         let mut cur = start;
-        for i in 0..N_1D {
+        for i in 0..X_LEN {
             x_1d[i] = cur;
             cur += space_step;
         }
@@ -52,59 +52,59 @@ impl Plugin for WavePlugin {
         let mut sim_config = SimConfig::new(space_step, 1.0, 0.999);
         let mut sims = vec![];
 
-        sims.push(Simulation::new("", base_u, 0.0));
+        let mut u = base_u.clone();
+        sims.push(Simulation::new("", u.clone(), 0.0));
         // ====================================================================================================
-        let mut u = base_u;
         let point = vec2(0.0, 0.0);
-        for (i, x) in x_1d.iter().enumerate() {
-            for (j, y) in x_1d.iter().enumerate() {
+        for (j, y) in x_1d.iter().enumerate() {
+            for (i, x) in x_1d.iter().enumerate() {
                 let dist = (vec2(*x, *y) - point).length();
                 if dist < PI / 8.0 {
-                    u[i + (j * N_1D)] = 50.0 * cos(x * 4.0);
+                    u[i + (j * X_LEN)] = 50.0 * cos(x * 4.0);
                 }
             }
         }
         sims.push(Simulation::new("Cosine peak placed on the centre", u, dur));
         // ====================================================================================================
-        let mut u = base_u;
+        let mut u = base_u.clone();
         let point = vec2(0.0, 0.0);
         for (i, x) in x_1d.iter().enumerate() {
             for (j, y) in x_1d.iter().enumerate() {
                 let dist = (vec2(*x, *y) - point).length();
                 if dist > PI * 0.8 && dist < PI * 1.12 {
-                    u[i + (j * N_1D)] = 10.0;
+                    u[i + (j * X_LEN)] = 10.0;
                 }
             }
         }
         sims.push(Simulation::new("Positive centred ring", u, dur));
         // ====================================================================================================
-        let mut u = base_u;
+        let mut u = base_u.clone();
         for (i, x) in x_1d.iter().enumerate() {
             for (j, _) in x_1d.iter().enumerate() {
                 if *x > -PI * 0.2 && *x < PI * 0.2 {
-                    u[i + (j * N_1D)] = 10.0;
+                    u[i + (j * X_LEN)] = 10.0;
                 }
             }
         }
         sims.push(Simulation::new("Centred positive line", u, dur));
         // ====================================================================================================
-        let mut u = base_u;
+        let mut u = base_u.clone();
         for (i, x) in x_1d.iter().enumerate() {
             for (j, _) in x_1d.iter().enumerate() {
                 if *x > -PI * 1.2 && *x < -PI * 0.8 {
-                    u[i + (j * N_1D)] = 10.0;
+                    u[i + (j * X_LEN)] = 10.0;
                 }
             }
         }
         sims.push(Simulation::new("Positive line placed on the left", u, dur));
         // ====================================================================================================
-        let mut u = base_u;
+        let mut u = base_u.clone();
         for (i, x) in x_1d.iter().enumerate() {
             for (j, _) in x_1d.iter().enumerate() {
                 if *x > -PI * 1.2 && *x < -PI * 0.8 {
-                    u[i + (j * N_1D)] = 10.0;
+                    u[i + (j * X_LEN)] = 10.0;
                 } else if *x > PI * 0.8 && *x < PI * 1.2 {
-                    u[i + (j * N_1D)] = -10.0;
+                    u[i + (j * X_LEN)] = -10.0;
                 }
             }
         }
@@ -114,11 +114,11 @@ impl Plugin for WavePlugin {
             dur,
         ));
         // ====================================================================================================
-        let mut u = base_u;
+        let mut u = base_u.clone();
         for (i, x) in x_1d.iter().enumerate() {
             for (j, _) in x_1d.iter().enumerate() {
                 if (*x > PI * -1.2 && *x < PI * -0.8) || (*x > PI * 0.8 && *x < PI * 1.2) {
-                    u[i + (j * N_1D)] = 10.0;
+                    u[i + (j * X_LEN)] = 10.0;
                 }
             }
         }
@@ -128,25 +128,25 @@ impl Plugin for WavePlugin {
             dur,
         ));
         // ====================================================================================================
-        let mut u = base_u;
+        let mut u = base_u.clone();
         let point = vec2(-PI, 0.0);
         for (i, x) in x_1d.iter().enumerate() {
             for (j, y) in x_1d.iter().enumerate() {
                 let dist = (vec2(*x, *y) - point).length();
                 if dist < PI / 8.0 {
-                    u[i + (j * N_1D)] = 50.0 * cos(x * 4.0);
+                    u[i + (j * X_LEN)] = 50.0 * cos(x * 4.0);
                 }
             }
         }
         sims.push(Simulation::new("Cosine peak placed on the left", u, dur));
         // ====================================================================================================
-        let mut u = base_u;
+        let mut u = base_u.clone();
         let point = vec2(-PI, 0.0);
         for (i, x) in x_1d.iter().enumerate() {
             for (j, y) in x_1d.iter().enumerate() {
                 let dist = (vec2(*x, *y) - point).length();
                 if dist < PI / 8.0 {
-                    u[i + (j * N_1D)] = 50.0 * cos(x * 4.0);
+                    u[i + (j * X_LEN)] = 50.0 * cos(x * 4.0);
                 }
             }
         }
@@ -155,7 +155,7 @@ impl Plugin for WavePlugin {
             for (j, y) in x_1d.iter().enumerate() {
                 let dist = (vec2(*x, *y) - point).length();
                 if dist < PI / 8.0 {
-                    u[i + (j * N_1D)] = -50.0 * cos(x * 4.0);
+                    u[i + (j * X_LEN)] = -50.0 * cos(x * 4.0);
                 }
             }
         }
@@ -171,7 +171,7 @@ impl Plugin for WavePlugin {
             for (j, y) in x_1d.iter().enumerate() {
                 let dist = (vec2(*x, *y) - point).length();
                 if dist < PI / 8.0 {
-                    u[i + (j * N_1D)] = 50.0 * cos(x * 4.0);
+                    u[i + (j * X_LEN)] = 50.0 * cos(x * 4.0);
                 }
             }
         }
@@ -180,7 +180,7 @@ impl Plugin for WavePlugin {
             for (j, y) in x_1d.iter().enumerate() {
                 let dist = (vec2(*x, *y) - point).length();
                 if dist < PI / 8.0 {
-                    u[i + (j * N_1D)] = 50.0 * cos(x * 4.0);
+                    u[i + (j * X_LEN)] = 50.0 * cos(x * 4.0);
                 }
             }
         }
@@ -202,7 +202,7 @@ impl Plugin for WavePlugin {
             .add_systems(
                 Update,
                 (
-                    Self::step_wave_field_1d,
+                    // Self::step_wave_field_1d,
                     Self::step_wave_field_2d,
                     Self::tick_sim_config,
                 )
@@ -241,7 +241,7 @@ impl WavePlugin {
 
     fn change_sim(
         mut sim_config: ResMut<SimConfig>,
-        mut wave_field: Query<&mut WaveField2D<N_2D>>,
+        mut wave_field: Query<&mut WaveField2D>,
         mut sim_title: Query<&mut Text, With<SimTitle>>,
     ) {
         let Some(sim) = sim_config.next_sim() else {
@@ -266,28 +266,28 @@ impl WavePlugin {
         }
     }
 
-    fn step_wave_field_1d(
-        mut meshes: ResMut<Assets<Mesh>>,
-        mut planes: Query<(&Mesh3d, &mut WaveField1D<N_1D>), With<DeformablePlane>>,
-        time: Res<Time>,
-    ) {
-        for (mesh_handle, mut field) in planes.iter_mut() {
-            if let Some(mut mesh) = meshes.get_mut(mesh_handle) {
-                if let Some(VertexAttributeValues::Float32x3(positions)) =
-                    mesh.attribute_mut(Mesh::ATTRIBUTE_POSITION)
-                {
-                    field.step(time.delta_secs());
-                    for [x, y, _] in positions.iter_mut() {
-                        *y = field.get_x(*x, -50.0, 50.0);
-                    }
-                }
-            }
-        }
-    }
+    // fn step_wave_field_1d(
+    //     mut meshes: ResMut<Assets<Mesh>>,
+    //     mut planes: Query<(&Mesh3d, &mut WaveField1D<X_LEN>), With<DeformablePlane>>,
+    //     time: Res<Time>,
+    // ) {
+    //     for (mesh_handle, mut field) in planes.iter_mut() {
+    //         if let Some(mut mesh) = meshes.get_mut(mesh_handle) {
+    //             if let Some(VertexAttributeValues::Float32x3(positions)) =
+    //                 mesh.attribute_mut(Mesh::ATTRIBUTE_POSITION)
+    //             {
+    //                 field.step(time.delta_secs());
+    //                 for [x, y, _] in positions.iter_mut() {
+    //                     *y = field.get_x(*x, -50.0, 50.0);
+    //                 }
+    //             }
+    //         }
+    //     }
+    // }
 
     fn step_wave_field_2d(
         mut meshes: ResMut<Assets<Mesh>>,
-        mut planes: Query<(&Mesh3d, &mut WaveField2D<N_2D>), With<DeformablePlane>>,
+        mut planes: Query<(&Mesh3d, &mut WaveField2D), With<DeformablePlane>>,
         time: Res<Time>,
     ) {
         for (mesh_handle, mut field) in planes.iter_mut() {
@@ -309,12 +309,12 @@ impl WavePlugin {
     //     mut meshes: ResMut<Assets<Mesh>>,
     //     mut materials: ResMut<Assets<StandardMaterial>>,
     // ) {
-    //     let mut x = [0.0; N_1D];
-    //     let mut u = [0.0; N_1D];
+    //     let mut x = [0.0; X_LEN];
+    //     let mut u = [0.0; X_LEN];
 
     //     let start = PI * -2.0;
     //     let stop = PI * 2.0;
-    //     let space_step = (stop - start) / (N_1D as f32);
+    //     let space_step = (stop - start) / (X_LEN as f32);
 
     //     let mut i = 0;
     //     let mut cur = start;
@@ -334,14 +334,14 @@ impl WavePlugin {
     //     }
 
     //     commands.spawn((
-    //         WaveField1D::<N_1D>::new(u, space_step, 0.6, 0.9995),
+    //         WaveField1D::<X_LEN>::new(u, space_step, 0.6, 0.9995),
     //         DeformablePlane,
     //         Mesh3d(
     //             meshes.add(
     //                 Plane3d::default()
     //                     .mesh()
     //                     .size(50.0, 50.0)
-    //                     .subdivisions(N_1D as u32),
+    //                     .subdivisions(X_LEN as u32),
     //             ),
     //         ),
     //         MeshMaterial3d(materials.add(Color::srgb(0.3, 0.5, 0.3))),
@@ -356,8 +356,10 @@ impl WavePlugin {
         mut materials: ResMut<Assets<StandardMaterial>>,
     ) {
         commands.spawn((
-            WaveField2D::<N_2D>::new(
-                [0.0; N_2D],
+            WaveField2D::new(
+                vec![0.0; LEN],
+                X_LEN,
+                Y_LEN,
                 sim_config.space_step,
                 sim_config.wave_speed,
                 sim_config.damping,
@@ -368,7 +370,7 @@ impl WavePlugin {
                     Plane3d::default()
                         .mesh()
                         .size(50.0, 50.0)
-                        .subdivisions(N_1D as u32),
+                        .subdivisions(X_LEN as u32),
                 ),
             ),
             MeshMaterial3d(materials.add(Color::srgb(0.3, 0.5, 0.3))),

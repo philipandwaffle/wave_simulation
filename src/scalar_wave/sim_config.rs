@@ -1,4 +1,3 @@
-use crate::consts::N_2D;
 use bevy::ecs::resource::Resource;
 
 #[derive(Resource)]
@@ -64,11 +63,11 @@ impl SimConfig {
 
 pub struct Simulation {
     pub title: String,
-    pub initial_u: [f32; N_2D],
+    pub initial_u: Vec<f32>,
     duration: f32,
 }
 impl Simulation {
-    pub fn new(title: &str, initial_u: [f32; N_2D], duration: f32) -> Self {
+    pub fn new(title: &str, initial_u: Vec<f32>, duration: f32) -> Self {
         Self {
             title: title.to_string(),
             initial_u,
