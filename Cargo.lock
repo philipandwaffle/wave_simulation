@@ -2866,7 +2866,7 @@ dependencies = [
 [[package]]
 name = "handles"
 version = "0.1.0"
-source = "git+https://github.com/personal-rust-crates/handles.git?branch=master#54ce21d20efb5a4f6a19624745e44d57215b790a"
+source = "git+https://github.com/personal-rust-crates/handles.git?branch=master#2dce413c606a450dbbbd5cb01d709c4302281384"
 dependencies = [
  "bevy",
  "config",
