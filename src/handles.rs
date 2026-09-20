@@ -6,44 +6,12 @@ pub type HandlesResource = Handles<StandardMaterialKey, MeshKey>;
 
 #[derive(Clone, PartialEq, Eq, Hash, Serialize, Deserialize, Debug)]
 pub enum ColorKey {
-    Red,
-    Orange,
-    Yellow,
-    SpringGreen,
-    Green,
-    OceanGreen,
-    Cyan,
-    SkyBlue,
-    Blue,
-    Purple,
-    Magenta,
-    Crimson,
-    White,
-    LightGrey,
-    Grey,
-    DarkGrey,
-    Black,
+    DefaultSurfacePixelColor,
 }
 
 #[derive(Clone, PartialEq, Eq, Hash, Serialize, Deserialize, Debug)]
 pub enum StandardMaterialKey {
-    RedMaterial,
-    OrangeMaterial,
-    YellowMaterial,
-    SpringGreenMaterial,
-    GreenMaterial,
-    OceanGreenMaterial,
-    CyanMaterial,
-    SkyBlueMaterial,
-    BlueMaterial,
-    PurpleMaterial,
-    MagentaMaterial,
-    CrimsonMaterial,
-    WhiteMaterial,
-    LightGreyMaterial,
-    GreyMaterial,
-    DarkGreyMaterial,
-    BlackMaterial,
+    SurfacePixel,
 }
 
 #[derive(Clone, PartialEq, Eq, Hash, Serialize, Deserialize, Debug)]

@@ -1,3 +1,5 @@
+use std::f32::consts::PI;
+
 use bevy::{
     app::{Plugin, Startup, Update},
     camera::Camera3d,
@@ -19,7 +21,7 @@ pub struct CameraControllerPlugin;
 impl CameraControllerPlugin {
     fn camera() -> impl Scene {
         bsn! {
-            Camera3d::default() Transform::from_xyz(0.0, 40.0, 60.0) MainCamera RotatingCamera TranslatingCamera
+            Camera3d::default() Transform::from_xyz(0.0, PI, PI*3.0) MainCamera RotatingCamera TranslatingCamera
         }
     }
 

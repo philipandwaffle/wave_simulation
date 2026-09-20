@@ -1,7 +1,7 @@
 use bevy::{
     ecs::resource::Resource,
     log::{info, warn},
-    math::USizeVec2,
+    math::{USizeVec2, Vec2},
 };
 use core::f32;
 use std::f32::consts::FRAC_1_SQRT_2;
@@ -34,19 +34,26 @@ impl ScalarWaveField {
         me
     }
 
+    pub fn cur_u(&self) -> &Vec<f32> {
+        &self.u[1]
+    }
+
+    pub fn resolution(&self) -> USizeVec2 {
+        self.resolution
+    }
+
     pub fn set_u(&mut self, u: Vec<f32>) {
         self.u = [u.clone(), u];
     }
 
-    pub fn cell_real_space(&self, x: f32, y: f32, min: f32, max: f32) -> f32 {
-        let x = self
-            .linearly_interpolate(x, 0.0, self.resolution.x as f32, min, max)
-            .round() as usize;
-        let y = self
-            .linearly_interpolate(y, 0.0, self.resolution.y as f32, min, max)
-            .round() as usize;
+    pub fn world_space_cell(&self, world_pos: Vec2, world_size: Vec2, world_centre: Vec2) -> f32 {
+        let grid_pos = Self::world_to_grid(world_pos, world_size, world_centre);
 
-        self.cell_grid_space(0, x, y)
+        self.grid_space_cell(0, grid_pos.x, grid_pos.y)
+    }
+
+    pub fn world_to_grid(world_pos: Vec2, world_size: Vec2, world_centre: Vec2) -> USizeVec2 {
+        ((world_pos - world_centre) + (world_size * 0.5)).as_usizevec2()
     }
 
     fn linearly_interpolate(
@@ -60,7 +67,7 @@ impl ScalarWaveField {
         out_min + ((val - in_min) / (in_max - in_min)) * (out_max - out_min)
     }
 
-    pub fn cell_grid_space(&self, t: usize, x: usize, y: usize) -> f32 {
+    pub fn grid_space_cell(&self, t: usize, x: usize, y: usize) -> f32 {
         return self.u[t][x + (y * self.resolution.y)];
     }
 
@@ -80,12 +87,12 @@ impl ScalarWaveField {
         for j in 1..self.resolution.y - 1 {
             for i in 1..self.resolution.x - 1 {
                 let discrete_time =
-                    2.0 * self.cell_grid_space(0, i, j) - self.cell_grid_space(1, i, j);
-                let discrete_space = self.cell_grid_space(0, i + 1, j)
-                    + self.cell_grid_space(0, i - 1, j)
-                    + self.cell_grid_space(0, i, j + 1)
-                    + self.cell_grid_space(0, i, j - 1)
-                    - (4.0 * self.cell_grid_space(0, i, j));
+                    2.0 * self.grid_space_cell(0, i, j) - self.grid_space_cell(1, i, j);
+                let discrete_space = self.grid_space_cell(0, i + 1, j)
+                    + self.grid_space_cell(0, i - 1, j)
+                    + self.grid_space_cell(0, i, j + 1)
+                    + self.grid_space_cell(0, i, j - 1)
+                    - (4.0 * self.grid_space_cell(0, i, j));
 
                 new_u[i + (j * self.resolution.x)] =
                     (discrete_time + (r * r * (discrete_space))) * self.damping;

@@ -45,8 +45,12 @@ impl Plugin for SandboxPlugin {
 impl SandboxPlugin {
     fn spawn_light(mut commands: Commands) {
         commands.spawn((
-            // DirectionalLight { ..default() },
+            // DirectionalLight {
+            //     shadow_maps_enabled: true,
+            //     ..default()
+            // },
             PointLight {
+                shadow_maps_enabled: true,
                 intensity: 10000000.0,
                 range: 100.0,
                 ..default()

@@ -1,5 +1,3 @@
-use std::f32::consts::PI;
-
 use crate::{
     display::surface::{SurfacePlugin, SurfaceSpawn, SurfaceUpdate},
     scalar_wave::{
@@ -10,7 +8,6 @@ use crate::{
 };
 use bevy::{
     app::{Plugin, Startup, Update},
-    asset::Assets,
     color::Color,
     ecs::{
         query::With,
@@ -18,17 +15,15 @@ use bevy::{
         system::{Commands, Query, Res, ResMut},
     },
     input::{ButtonInput, keyboard::KeyCode},
-    math::{Quat, USizeVec2, Vec2, ops::*, primitives::Plane3d, vec2},
-    mesh::{Mesh, Mesh3d, Meshable, VertexAttributeValues},
-    pbr::{MeshMaterial3d, StandardMaterial},
+    math::{USizeVec2, Vec2, ops::*, vec2},
     text::{FontSize, TextColor, TextFont},
     time::Time,
-    transform::components::Transform,
     ui::{Node, PositionType, Val, widget::Text},
     utils::default,
 };
 use config::{ConfigTag, config_tag::ConfigTag};
 use serde::{Deserialize, Serialize};
+use std::f32::consts::PI;
 
 #[derive(ConfigTag, Serialize, Deserialize, Clone)]
 pub struct ScalarWavePlugin {
@@ -40,14 +35,23 @@ pub struct ScalarWavePlugin {
 }
 impl Plugin for ScalarWavePlugin {
     fn build(&self, app: &mut bevy::app::App) {
+        fn place_point(point: Vec2, cur_pos: &Vec2, radius: f32) -> Option<f32> {
+            let dist = (point - cur_pos).length();
+            if dist <= radius {
+                Some(1.0 + cos((PI * dist) / radius))
+            } else {
+                None
+            }
+        }
+
         let (x_len, y_len) = (self.resolution.x, self.resolution.y);
         let mut xy_points = Vec::<Vec2>::with_capacity(x_len * y_len);
         let mut base_u = vec![0.0; x_len * y_len];
 
         let mut cur_pos = self.simulation_centre - (self.simulation_size * 0.5);
         let step = vec2(
-            self.simulation_size.x / x_len as f32,
-            self.simulation_size.y / y_len as f32,
+            self.simulation_size.x / (x_len - 1) as f32,
+            self.simulation_size.y / (y_len - 1) as f32,
         );
         if step.x != step.y {
             panic!("The x and y step are different when they must be equal. step: {step:?}")
@@ -63,132 +67,116 @@ impl Plugin for ScalarWavePlugin {
         }
 
         let space_step = step.x;
+        let max_magnitude = 10.0;
         let dur = 15.0;
 
         let mut sim_config = SimConfig::new(space_step, 1.0, 0.999);
         let mut sims = vec![];
 
-        let mut u = base_u.clone();
-        sims.push(Simulation::new("", u.clone(), 0.0));
+        let u = base_u.clone();
+        let default_sim = Simulation::new("", xy_points, u.clone(), 0.0);
+        sims.push(default_sim.clone());
         // ====================================================================================================
-        let point = vec2(0.0, 0.0);
-        for (index, pos) in xy_points.iter().enumerate() {
-            let dist = pos.length();
-            if dist < PI / 8.0 {
-                u[index] = 50.0 * cos(dist * 4.0);
-            }
+        {
+            let sim = default_sim
+                .clone()
+                .with_title("Cosine peak placed on the centre")
+                .with_duration(dur)
+                .with_cosine_dot(max_magnitude, vec2(0.0, 0.0), PI / 8.0);
+
+            sims.push(sim);
         }
-        sims.push(Simulation::new("Cosine peak placed on the centre", u, dur));
         // ====================================================================================================
-        let mut u = base_u.clone();
-        let point = vec2(0.0, 0.0);
-        for (index, pos) in xy_points.iter().enumerate() {
-            let dist = (pos - point).length();
-            if dist > PI * 0.8 && dist < PI * 1.12 {
-                u[index] = 10.0;
-            }
+        {
+            let sim = default_sim
+                .clone()
+                .with_title("Positive centred ring")
+                .with_duration(dur)
+                .with_cosine_ring(max_magnitude, vec2(0.0, 0.0), PI / 16.0, PI);
+
+            sims.push(sim);
         }
-        sims.push(Simulation::new("Positive centred ring", u, dur));
         // ====================================================================================================
-        let mut u = base_u.clone();
-        for (index, pos) in xy_points.iter().enumerate() {
-            if pos.x > -PI * 0.2 && pos.x < PI * 0.2 {
-                u[index] = 10.0;
-            }
+        {
+            let sim = default_sim
+                .clone()
+                .with_title("Centred positive line")
+                .with_duration(dur)
+                .with_cosine_line(max_magnitude, 0.0, PI / 16.0, true);
+
+            sims.push(sim);
         }
-        sims.push(Simulation::new("Centred positive line", u, dur));
         // ====================================================================================================
-        let mut u = base_u.clone();
-        for (index, pos) in xy_points.iter().enumerate() {
-            if pos.x > -PI * 1.2 && pos.x < -PI * 0.8 {
-                u[index] = 10.0;
-            }
+        {
+            let sim = default_sim
+                .clone()
+                .with_title("Positive line placed on the left")
+                .with_duration(dur)
+                .with_cosine_line(max_magnitude, -PI, PI / 16.0, true);
+
+            sims.push(sim);
         }
-        sims.push(Simulation::new("Positive line placed on the left", u, dur));
         // ====================================================================================================
-        let mut u = base_u.clone();
-        for (index, pos) in xy_points.iter().enumerate() {
-            if pos.x > -PI * 1.2 && pos.x < -PI * 0.8 {
-                u[index] = 10.0;
-            } else if pos.x > PI * 0.8 && pos.x < PI * 1.2 {
-                u[index] = -10.0;
-            }
+        {
+            let sim = default_sim
+                .clone()
+                .with_title("Positive and negative lines placed opposite each other")
+                .with_duration(dur)
+                .with_cosine_line(max_magnitude, -PI, PI / 16.0, true)
+                .with_cosine_line(-max_magnitude, PI, PI / 16.0, true);
+
+            sims.push(sim);
         }
-        sims.push(Simulation::new(
-            "Positive and negative lines placed opposite each other",
-            u,
-            dur,
-        ));
         // ====================================================================================================
-        let mut u = base_u.clone();
-        for (index, pos) in xy_points.iter().enumerate() {
-            if (pos.x > PI * -1.2 && pos.x < PI * -0.8) || (pos.x > PI * 0.8 && pos.x < PI * 1.2) {
-                u[index] = 10.0;
-            }
+        {
+            let sim = default_sim
+                .clone()
+                .with_title("Positive lines placed opposite each other")
+                .with_duration(dur)
+                .with_cosine_line(max_magnitude, -PI, PI / 16.0, true)
+                .with_cosine_line(max_magnitude, PI, PI / 16.0, true);
+
+            sims.push(sim);
         }
-        sims.push(Simulation::new(
-            "Positive lines placed opposite each other",
-            u,
-            dur,
-        ));
         // ====================================================================================================
-        let mut u = base_u.clone();
-        let point = vec2(-PI, 0.0);
-        for (index, pos) in xy_points.iter().enumerate() {
-            let dist = pos.length();
-            if dist < PI / 8.0 {
-                u[index] = 50.0 * cos(dist * 4.0);
-            }
+        {
+            let sim = default_sim
+                .clone()
+                .with_title("Cosine peak placed on the left")
+                .with_duration(dur)
+                .with_cosine_dot(max_magnitude, vec2(-PI, 0.0), PI / 8.0);
+
+            sims.push(sim);
         }
-        sims.push(Simulation::new("Cosine peak placed on the left", u, dur));
         // ====================================================================================================
-        let mut u = base_u.clone();
-        let point = vec2(-PI, 0.0);
-        for (index, pos) in xy_points.iter().enumerate() {
-            let dist = (pos - point).length();
-            if dist < PI / 8.0 {
-                u[index] = 50.0 * cos(dist * 4.0);
-            }
+        {
+            let sim = default_sim
+                .clone()
+                .with_title("Positive and negative cosine peaks placed opposite each other")
+                .with_duration(dur)
+                .with_cosine_dot(max_magnitude, vec2(-PI, 0.0), PI / 8.0)
+                .with_cosine_dot(-max_magnitude, vec2(PI, 0.0), PI / 8.0);
+
+            sims.push(sim);
         }
-        let point = vec2(PI, 0.0);
-        for (index, pos) in xy_points.iter().enumerate() {
-            let dist = (pos - point).length();
-            if dist < PI / 8.0 {
-                u[index] = -50.0 * cos(dist * 4.0);
-            }
-        }
-        sims.push(Simulation::new(
-            "Positive and negative cosine peaks placed opposite each other",
-            u,
-            dur,
-        ));
         // ====================================================================================================
-        let mut u = base_u;
-        let point = vec2(-PI, 0.0);
-        for (index, pos) in xy_points.iter().enumerate() {
-            let dist = (pos - point).length();
-            if dist < PI / 8.0 {
-                u[index] = 50.0 * cos(dist * 4.0);
-            }
+        {
+            let sim = default_sim
+                .clone()
+                .with_title("Positive cosine peaks placed opposite each other")
+                .with_duration(dur)
+                .with_cosine_dot(max_magnitude, vec2(-PI, 0.0), PI / 8.0)
+                .with_cosine_dot(max_magnitude, vec2(PI, 0.0), PI / 8.0);
+
+            sims.push(sim);
         }
-        let point = vec2(PI, 0.0);
-        for (index, pos) in xy_points.iter().enumerate() {
-            let dist = (pos - point).length();
-            if dist < PI / 8.0 {
-                u[index] = 50.0 * cos(dist * 4.0);
-            }
-        }
-        sims.push(Simulation::new(
-            "Positive cosine peaks placed opposite each other",
-            u,
-            dur,
-        ));
         // ====================================================================================================
 
         sims.reverse();
         sim_config = sim_config.with_simulations(sims);
 
         let me = self.clone();
+        let me2 = self.clone();
         app.insert_resource(sim_config)
             .add_plugins(SurfacePlugin)
             .add_systems(
@@ -204,7 +192,15 @@ impl Plugin for ScalarWavePlugin {
             .add_systems(Update, Self::change_sim.run_if(Self::should_change_sim))
             .add_systems(
                 Update,
-                (Self::step_wave_field_2d, Self::tick_sim_config).run_if(Self::can_step),
+                (
+                    move |commands: Commands,
+                          scalar_wave_field: ResMut<ScalarWaveField>,
+                          time: Res<Time>| {
+                        Self::step_wave_field_2d(me2.clone(), commands, scalar_wave_field, time)
+                    },
+                    Self::tick_sim_config,
+                )
+                    .run_if(Self::can_step),
             );
     }
 }
@@ -254,8 +250,8 @@ impl ScalarWavePlugin {
             return;
         };
 
-        wave_field.set_u(sim.initial_u);
-        sim_title.0 = sim.title;
+        wave_field.set_u(sim.initial_u());
+        sim_title.0 = sim.title();
     }
 
     fn toggle_paused(mut settings: ResMut<SimConfig>, keys: Res<ButtonInput<KeyCode>>) {
@@ -265,12 +261,19 @@ impl ScalarWavePlugin {
     }
 
     fn step_wave_field_2d(
+        config: Self,
         mut commands: Commands,
         mut scalar_wave_field: ResMut<ScalarWaveField>,
         time: Res<Time>,
     ) {
         let surface = scalar_wave_field.step(time.delta_secs());
-        commands.trigger(SurfaceUpdate::new(surface));
+        // let surface = scalar_wave_field.cur_u().clone();
+        commands.trigger(SurfaceUpdate::new(
+            surface,
+            config.world_centre,
+            config.world_size,
+            scalar_wave_field.resolution(),
+        ));
         // if let Some(mut mesh) = meshes.get_mut(mesh_handle) {
         //     if let Some(VertexAttributeValues::Float32x3(positions)) =
         //         mesh.attribute_mut(Mesh::ATTRIBUTE_POSITION)

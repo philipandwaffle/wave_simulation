@@ -1,28 +1,12 @@
 {
     "handles": {
         "colors": {
-            "Red": {
-                "Hsla": {
-                    "hue": 0.0,
-                    "saturation": 1.0,
-                    "lightness": 1.0,
-                    "alpha": 0.5
-                }
-            },
-            "Green": {
-                "Hsla": {
+            "DefaultSurfacePixelColor": {
+                "Hsva": {
                     "hue": 100.0,
                     "saturation": 1.0,
-                    "lightness": 1.0,
-                    "alpha": 0.5
-                }
-            },
-            "Blue": {
-                "Hsla": {
-                    "hue": 235.0,
-                    "saturation": 1.0,
-                    "lightness": 1.0,
-                    "alpha": 0.5
+                    "value": 0.75,
+                    "alpha": 0.75
                 }
             }
         },
@@ -38,14 +22,12 @@
                         1.0,
                         1.0
                     ],
-                    "subdivisions": 3
+                    "subdivisions": 1
                 }
             }
         },
         "standard_materials": {
-            "RedMaterial": "Red",
-            "GreenMaterial": "Green",
-            "BlueMaterial": "Blue"
+            "SurfacePixel": "DefaultSurfacePixelColor"
         }
     },
     "scalar_wave": {
@@ -58,16 +40,16 @@
             0.0
         ],
         "simulation_size": [
-            50.0,
-            50.0
+            9.4245,
+            9.4245
         ],
         "simulation_centre": [
             0.0,
             0.0
         ],
         "resolution": [
-            51,
-            51
+            41,
+            41
         ]
     }
 }

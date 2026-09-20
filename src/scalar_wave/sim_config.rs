@@ -1,4 +1,9 @@
-use bevy::ecs::resource::Resource;
+use std::f32::consts::PI;
+
+use bevy::{
+    ecs::resource::Resource,
+    math::{Vec2, ops::cos},
+};
 
 #[derive(Resource)]
 pub struct SimConfig {
@@ -61,17 +66,92 @@ impl SimConfig {
     }
 }
 
+#[derive(Clone)]
 pub struct Simulation {
-    pub title: String,
-    pub initial_u: Vec<f32>,
+    title: String,
+    xy_points: Vec<Vec2>,
+    initial_u: Vec<f32>,
     duration: f32,
 }
 impl Simulation {
-    pub fn new(title: &str, initial_u: Vec<f32>, duration: f32) -> Self {
+    pub fn new(title: &str, xy_points: Vec<Vec2>, initial_u: Vec<f32>, duration: f32) -> Self {
         Self {
             title: title.to_string(),
+            xy_points,
             initial_u,
             duration,
         }
+    }
+
+    pub fn title(&self) -> String {
+        self.title.clone()
+    }
+    pub fn with_title(mut self, title: &str) -> Self {
+        self.title = title.to_string();
+        self
+    }
+
+    pub fn initial_u(&self) -> Vec<f32> {
+        self.initial_u.clone()
+    }
+
+    pub fn with_duration(mut self, duration: f32) -> Self {
+        self.duration = duration;
+        self
+    }
+
+    fn cosine_map(x: f32, max_x: f32, max_y: f32) -> f32 {
+        max_x * (1.0 + cos((PI * x) / max_y))
+    }
+
+    pub fn with_cosine_dot(mut self, max_magnitude: f32, centre: Vec2, radius: f32) -> Self {
+        for (index, cur_pos) in self.xy_points.iter().enumerate() {
+            let dist = (cur_pos - centre).length();
+            if dist <= radius {
+                self.initial_u[index] = Self::cosine_map(dist, max_magnitude, radius);
+            }
+        }
+        self
+    }
+
+    pub fn with_cosine_ring(
+        mut self,
+        max_magnitude: f32,
+        centre: Vec2,
+        width: f32,
+        radius: f32,
+    ) -> Self {
+        for (index, cur_pos) in self.xy_points.iter().enumerate() {
+            let dist = (cur_pos - centre).length();
+            let diff = (radius - dist).abs();
+            if diff < width {
+                self.initial_u[index] = Self::cosine_map(diff, max_magnitude, width);
+            }
+        }
+        self
+    }
+
+    pub fn with_cosine_line(
+        mut self,
+        max_magnitude: f32,
+        dist: f32,
+        width: f32,
+        x_axis: bool,
+    ) -> Self {
+        for (index, cur_pos) in self.xy_points.iter().enumerate() {
+            if x_axis {
+                let x_diff = (cur_pos.x - dist).abs();
+                if x_diff < width {
+                    self.initial_u[index] = Self::cosine_map(x_diff, max_magnitude, width);
+                }
+            } else {
+                let y_diff = (cur_pos.y - dist).abs();
+                if y_diff < width {
+                    self.initial_u[index] = Self::cosine_map(y_diff, max_magnitude, width);
+                }
+            }
+        }
+
+        self
     }
 }
