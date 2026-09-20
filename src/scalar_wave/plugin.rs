@@ -15,7 +15,7 @@ use bevy::{
         system::{Commands, Query, Res, ResMut},
     },
     input::{ButtonInput, keyboard::KeyCode},
-    math::{USizeVec2, Vec2, ops::*, vec2},
+    math::{USizeVec2, Vec2, vec2},
     text::{FontSize, TextColor, TextFont},
     time::Time,
     ui::{Node, PositionType, Val, widget::Text},
@@ -35,18 +35,9 @@ pub struct ScalarWavePlugin {
 }
 impl Plugin for ScalarWavePlugin {
     fn build(&self, app: &mut bevy::app::App) {
-        fn place_point(point: Vec2, cur_pos: &Vec2, radius: f32) -> Option<f32> {
-            let dist = (point - cur_pos).length();
-            if dist <= radius {
-                Some(1.0 + cos((PI * dist) / radius))
-            } else {
-                None
-            }
-        }
-
         let (x_len, y_len) = (self.resolution.x, self.resolution.y);
         let mut xy_points = Vec::<Vec2>::with_capacity(x_len * y_len);
-        let mut base_u = vec![0.0; x_len * y_len];
+        let base_u = vec![0.0; x_len * y_len];
 
         let mut cur_pos = self.simulation_centre - (self.simulation_size * 0.5);
         let step = vec2(
@@ -82,7 +73,7 @@ impl Plugin for ScalarWavePlugin {
                 .clone()
                 .with_title("Cosine peak placed on the centre")
                 .with_duration(dur)
-                .with_cosine_dot(max_magnitude, vec2(0.0, 0.0), PI / 8.0);
+                .with_cosine_dot(max_magnitude, vec2(0.0, 0.0), PI / 4.0);
 
             sims.push(sim);
         }
@@ -92,49 +83,7 @@ impl Plugin for ScalarWavePlugin {
                 .clone()
                 .with_title("Positive centred ring")
                 .with_duration(dur)
-                .with_cosine_ring(max_magnitude, vec2(0.0, 0.0), PI / 16.0, PI);
-
-            sims.push(sim);
-        }
-        // ====================================================================================================
-        {
-            let sim = default_sim
-                .clone()
-                .with_title("Centred positive line")
-                .with_duration(dur)
-                .with_cosine_line(max_magnitude, 0.0, PI / 16.0, true);
-
-            sims.push(sim);
-        }
-        // ====================================================================================================
-        {
-            let sim = default_sim
-                .clone()
-                .with_title("Positive line placed on the left")
-                .with_duration(dur)
-                .with_cosine_line(max_magnitude, -PI, PI / 16.0, true);
-
-            sims.push(sim);
-        }
-        // ====================================================================================================
-        {
-            let sim = default_sim
-                .clone()
-                .with_title("Positive and negative lines placed opposite each other")
-                .with_duration(dur)
-                .with_cosine_line(max_magnitude, -PI, PI / 16.0, true)
-                .with_cosine_line(-max_magnitude, PI, PI / 16.0, true);
-
-            sims.push(sim);
-        }
-        // ====================================================================================================
-        {
-            let sim = default_sim
-                .clone()
-                .with_title("Positive lines placed opposite each other")
-                .with_duration(dur)
-                .with_cosine_line(max_magnitude, -PI, PI / 16.0, true)
-                .with_cosine_line(max_magnitude, PI, PI / 16.0, true);
+                .with_cosine_ring(max_magnitude / 3.0, vec2(0.0, 0.0), PI / 8.0, PI);
 
             sims.push(sim);
         }
@@ -144,7 +93,7 @@ impl Plugin for ScalarWavePlugin {
                 .clone()
                 .with_title("Cosine peak placed on the left")
                 .with_duration(dur)
-                .with_cosine_dot(max_magnitude, vec2(-PI, 0.0), PI / 8.0);
+                .with_cosine_dot(max_magnitude, vec2(-PI, 0.0), PI / 4.0);
 
             sims.push(sim);
         }
@@ -154,8 +103,8 @@ impl Plugin for ScalarWavePlugin {
                 .clone()
                 .with_title("Positive and negative cosine peaks placed opposite each other")
                 .with_duration(dur)
-                .with_cosine_dot(max_magnitude, vec2(-PI, 0.0), PI / 8.0)
-                .with_cosine_dot(-max_magnitude, vec2(PI, 0.0), PI / 8.0);
+                .with_cosine_dot(max_magnitude, vec2(-PI, 0.0), PI / 4.0)
+                .with_cosine_dot(-max_magnitude, vec2(PI, 0.0), PI / 4.0);
 
             sims.push(sim);
         }
@@ -165,8 +114,8 @@ impl Plugin for ScalarWavePlugin {
                 .clone()
                 .with_title("Positive cosine peaks placed opposite each other")
                 .with_duration(dur)
-                .with_cosine_dot(max_magnitude, vec2(-PI, 0.0), PI / 8.0)
-                .with_cosine_dot(max_magnitude, vec2(PI, 0.0), PI / 8.0);
+                .with_cosine_dot(max_magnitude, vec2(-PI, 0.0), PI / 4.0)
+                .with_cosine_dot(max_magnitude, vec2(PI, 0.0), PI / 4.0);
 
             sims.push(sim);
         }
