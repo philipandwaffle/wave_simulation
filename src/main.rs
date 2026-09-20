@@ -1,10 +1,10 @@
 pub mod camera_controller;
+pub mod config;
 pub mod consts;
 pub mod display;
 pub mod handles;
 pub mod scalar_wave;
 pub mod yee_lattice;
-pub mod config;
 
 use std::f32::consts::PI;
 
@@ -16,14 +16,22 @@ use bevy::{
     prelude::*,
 };
 
-use crate::{camera_controller::plugin::CameraControllerPlugin, scalar_wave::plugin::WavePlugin};
+use crate::{
+    camera_controller::plugin::CameraControllerPlugin, config::ConfigPlugin,
+    handles::HandlesPluginType, scalar_wave::plugin::WavePlugin,
+};
 
 #[derive(Component)]
 pub struct DeformablePlane;
 
 fn main() {
     App::new()
-        .add_plugins((DefaultPlugins, CameraControllerPlugin, SandboxPlugin))
+        .add_plugins((
+            DefaultPlugins,
+            ConfigPlugin,
+            CameraControllerPlugin,
+            SandboxPlugin,
+        ))
         .run();
 }
 

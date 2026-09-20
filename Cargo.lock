@@ -2864,6 +2864,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "handles"
+version = "0.1.0"
+source = "git+https://github.com/personal-rust-crates/handles.git?branch=master#95b9605d3587479e21679959d95bf4cd79b069e1"
+dependencies = [
+ "bevy",
+ "config",
+ "serde",
+ "serde-big-array",
+ "serde_json",
+]
+
+[[package]]
 name = "harfrust"
 version = "0.6.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -5301,6 +5313,10 @@ version = "0.1.0"
 dependencies = [
  "bevy",
  "config",
+ "handles",
+ "serde",
+ "serde-big-array",
+ "serde_json",
 ]
 
 [[package]]
