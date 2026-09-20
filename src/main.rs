@@ -18,7 +18,7 @@ use bevy::{
 
 use crate::{
     camera_controller::plugin::CameraControllerPlugin, config::ConfigPlugin,
-    handles::HandlesPluginType, scalar_wave::plugin::WavePlugin,
+    handles::HandlesPluginType, scalar_wave::plugin::ScalarWavePlugin,
 };
 
 #[derive(Component)]
@@ -38,8 +38,7 @@ fn main() {
 struct SandboxPlugin;
 impl Plugin for SandboxPlugin {
     fn build(&self, app: &mut App) {
-        app.add_plugins(WavePlugin)
-            .add_systems(Startup, Self::spawn_light);
+        app.add_systems(Startup, Self::spawn_light);
     }
 }
 

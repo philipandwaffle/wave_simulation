@@ -6,7 +6,7 @@
                     "hue": 0.0,
                     "saturation": 1.0,
                     "lightness": 1.0,
-                    "alpha": 1.0
+                    "alpha": 0.5
                 }
             },
             "Green": {
@@ -14,7 +14,7 @@
                     "hue": 100.0,
                     "saturation": 1.0,
                     "lightness": 1.0,
-                    "alpha": 1.0
+                    "alpha": 0.5
                 }
             },
             "Blue": {
@@ -22,7 +22,7 @@
                     "hue": 235.0,
                     "saturation": 1.0,
                     "lightness": 1.0,
-                    "alpha": 1.0
+                    "alpha": 0.5
                 }
             }
         },
@@ -38,7 +38,7 @@
                         1.0,
                         1.0
                     ],
-                    "subdivisions": 2
+                    "subdivisions": 3
                 }
             }
         },
@@ -47,5 +47,27 @@
             "GreenMaterial": "Green",
             "BlueMaterial": "Blue"
         }
+    },
+    "scalar_wave": {
+        "world_size": [
+            50.0,
+            50.0
+        ],
+        "world_centre": [
+            0.0,
+            0.0
+        ],
+        "simulation_size": [
+            50.0,
+            50.0
+        ],
+        "simulation_centre": [
+            0.0,
+            0.0
+        ],
+        "resolution": [
+            51,
+            51
+        ]
     }
 }
